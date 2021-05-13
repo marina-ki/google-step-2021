@@ -7,39 +7,32 @@ def sort_dictionary(dictionary):
     return new_dictionary
 
 
-def find_word(random_word, dictionary):
+def find_word(random_word, new_dictionary):
     sorted_random_word = ''.join(sorted(random_word))
-    new_dictionary = sort_dictionary(dictionary)
 
     left = 0
     right = len(new_dictionary)
-    find = False
 
     # 二分探索
-    while right >= left:
+    while right >= left:  # 上限と下限が反転するまで探索
         pivot = (right + left)//2
-        if new_dictionary[pivot][0] == sorted_random_word:
-            find = True
-            break
-        elif new_dictionary[pivot][0] < sorted_random_word:
+        if new_dictionary[pivot][0] < sorted_random_word:  # 小さければ下限を変更
             left = pivot + 1
-        else:
+        else:  # その他はここ
             right = pivot - 1
 
-    # もし見つけた単語がrandom_wordと一致していたら、その前後を見る
-    if new_dictionary[pivot][1] == random_word:
-        if pivot+1 < len(new_dictionary) and new_dictionary[pivot+1][1] == random_word:
-            pivot += 1
-        elif pivot - 1 >= 0 and new_dictionary[pivot-1][1] == random_word:
-            pivot -= 1
-        else:
-            find = False
-
-    anagram = ""
-    if find:
-        anagram = new_dictionary[pivot][1]
-
-    return anagram
+    if new_dictionary[pivot][0] != sorted_random_word:
+        return []
+    else:
+        # 一致する回答すべて探す
+        res = []
+        i = pivot
+        while i < len(new_dictionary) and new_dictionary[i][0] == sorted_random_word:
+            a = new_dictionary[i][1]
+            if a != random_word:
+                res.append(a)
+            i += 1
+        return res
 
 
 def main():
@@ -51,11 +44,12 @@ def main():
     random_word = input()
 
     dictionary = data.splitlines()
-    anagram = find_word(random_word, dictionary)
-    if anagram:
+    new_dictionary = sort_dictionary(dictionary)
+    anagram = find_word(random_word, new_dictionary)
+    if len(anagram) > 0:
         print(anagram)
     else:
-        print("anagramは見つけられませんでした\n")
+        print("nothing found.")
 
 
 main()
