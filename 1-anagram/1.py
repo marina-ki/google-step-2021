@@ -14,7 +14,7 @@ def find_word(random_word, new_dictionary):
     right = len(new_dictionary)
 
     # 二分探索
-    while right >= left:  # 上限と下限が反転するまで探索
+    while right > left:  # 上限と下限が反転するまで探索
         pivot = (right + left)//2
         if new_dictionary[pivot][0] < sorted_random_word:  # 小さければ下限を変更
             left = pivot + 1
@@ -36,7 +36,7 @@ def find_word(random_word, new_dictionary):
 
 
 def main():
-    f = open('myfile.txt', 'r')
+    f = open('words.txt', 'r')
     data = f.read()
     f.close()
 
