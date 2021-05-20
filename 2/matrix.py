@@ -1,27 +1,24 @@
 import numpy
 import sys
 import time
-
-if (len(sys.argv) != 2):
-    print("usage: python %s N" % sys.argv[0])
-    quit()
-
-n = int(sys.argv[1])
-a = numpy.zeros((n, n))  # Matrix A
-b = numpy.zeros((n, n))  # Matrix B
-c = numpy.zeros((n, n))  # Matrix C
-
-# Initialize the matrices to some values.
-for i in range(n):
-    for j in range(n):
-        a[i, j] = i * n + j
-        b[i, j] = j * n + i
-        c[i, j] = 0
-
-begin = time.time()
+import matplotlib.pyplot as plt
 
 
-def calc_matrix_product(a, b, c, n):
+def init_matrix(n):  # 行列a,b,cを作成
+    a = numpy.zeros((n, n))  # Matrix A
+    b = numpy.zeros((n, n))  # Matrix B
+    c = numpy.zeros((n, n))  # Matrix C
+
+    # Initialize the matrices to some values.
+    for i in range(n):
+        for j in range(n):
+            a[i, j] = i * n + j
+            b[i, j] = j * n + i
+            c[i, j] = 0
+    return a, b, c
+
+
+def calc_matrix_product(a, b, c, n):  # a,bの行列積をcに入れる
     for i in range(n):
         for j in range(n):
             for k in range(n):
@@ -29,17 +26,29 @@ def calc_matrix_product(a, b, c, n):
     return c
 
 
-calc_matrix_product(a, b, c, n)
+def get_time(n):  # n*nの行列のとき, 行列積にかかる時間
+    a, b, c = init_matrix(n)
+    begin = time.time()
+    calc_matrix_product(a, b, c, n)
+    end = time.time()
+    return end - begin
 
-end = time.time()
-print("time: %.6f sec" % (end - begin))
 
-# Print C for debugging. Comment out the print before measuring the execution time.
-total = 0
-for i in range(n):
-    for j in range(n):
-        # print c[i, j]
-        total += c[i, j]
-# Print out the sum of all values in C.
-# This should be 450 for N=3, 3680 for N=4, and 18250 for N=5.
-print("sum: %.6f" % total)
+def save_graph(x_max, times):  # グラフをplotして保存
+    n_list = list(range(x_max))
+
+    plt.scatter(n_list, times)
+
+    plt.xlabel("size of matrix")
+    plt.ylabel("time[s]")
+    plt.savefig("matrix_py.png")
+
+
+if __name__ == "__main__":
+    if (len(sys.argv) != 2):
+        print("usage: python %s N" % sys.argv[0])
+        quit()
+
+    n_max = int(sys.argv[1])
+    times = [get_time(i) for i in range(n_max)]
+    save_graph(n_max, times)
