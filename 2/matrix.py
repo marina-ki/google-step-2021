@@ -34,9 +34,23 @@ def get_time(n):  # n*nの行列のとき, 行列積にかかる時間
     return end - begin
 
 
-def save_graph(x_max, y_list):  # グラフをplotして保存
-    x_list = list(range(x_max))
-    plt.scatter(x_list, y_list)
+def calc_approximate(n, times):
+    x = list(range(n))
+    coefficients = np.polyfit(x, times, 3)  # [3次の係数, 2次の係数、 1次の係数, 0次の係数]が返ってくる
+    a = coefficients[0]
+    y = [a * i ** 3 for i in range(n)]
+    return x, y, a
+
+
+def save_graph(n, times):  # グラフをplotして保存
+    x = list(range(n))
+    y = np.array(times)
+    plt.scatter(x, y)
+
+    # 近似式も表示
+    x_3, y_3, a = calc_approximate(n, times)
+    plt.plot(x_3, y_3, color="black", label=rf'$y={{{a}}}*x^3$')
+    plt.legend()
     plt.xlabel("size of matrix")
     plt.ylabel("time[s]")
     plt.savefig("matrix_py.png")
