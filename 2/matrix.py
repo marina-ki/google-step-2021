@@ -1,13 +1,13 @@
-import numpy
+import numpy as np
 import sys
 import time
 import matplotlib.pyplot as plt
 
 
 def init_matrix(n):  # 行列a,b,cを作成
-    a = numpy.zeros((n, n))  # Matrix A
-    b = numpy.zeros((n, n))  # Matrix B
-    c = numpy.zeros((n, n))  # Matrix C
+    a = np.zeros((n, n))  # Matrix A
+    b = np.zeros((n, n))  # Matrix B
+    c = np.zeros((n, n))  # Matrix C
 
     # Initialize the matrices to some values.
     for i in range(n):
@@ -34,11 +34,9 @@ def get_time(n):  # n*nの行列のとき, 行列積にかかる時間
     return end - begin
 
 
-def save_graph(x_max, times):  # グラフをplotして保存
-    n_list = list(range(x_max))
-
-    plt.scatter(n_list, times)
-
+def save_graph(x_max, y_list):  # グラフをplotして保存
+    x_list = list(range(x_max))
+    plt.scatter(x_list, y_list)
     plt.xlabel("size of matrix")
     plt.ylabel("time[s]")
     plt.savefig("matrix_py.png")
