@@ -121,13 +121,11 @@ def evaluate_plus_and_minus(tokens):
 def solve_brackets(tokens):
     index = 0
     open_brackes_indexs = []
-    result_tokens = []
 
     while index < len(tokens):
         # (があるか探す
         if tokens[index]['type'] == 'BRACKET_OPEN':  # (が見つかったら
             open_brackes_indexs.append(index)
-            result_tokens.append(tokens[index])
         elif tokens[index]['type'] == 'BRACKET_CLOSE':  # )が見つかったら
             if len(open_brackes_indexs) == 0:  # )が多すぎる
                 print("The number of closing and opening parentheses does not match")
@@ -135,15 +133,15 @@ def solve_brackets(tokens):
             open_bracket_index = open_brackes_indexs.pop()
             # (から)からまでを計算してtokenを作成
             brancket_token = {'type': 'NUMBER', 'number': solve_without_brackets(tokens[open_bracket_index+1:index])}
-            # result_tokensの最後に出てきた(以降を削除し、bracket_tokenに差し替える
-            result_tokens = result_tokens[:(open_bracket_index - index)] + [brancket_token]
-        else:
-            result_tokens.append(tokens[index])
+            # (から)までを、bracket_tokenに差し替える
+            tokens = tokens[:open_bracket_index] + [brancket_token] + tokens[index+1:]
+            # indexの位置を(に戻す
+            index = open_bracket_index
         index += 1
     if len(open_brackes_indexs) > 0:  # (が多すぎる
         print("The number of closing and opening parentheses does not match")
         raise Exception('Invalid syntax')
-    return result_tokens
+    return tokens
 
 
 def solve_without_brackets(tokens):
@@ -282,6 +280,7 @@ def run_test():
     #
     # カッコがあるとき
     #
+    test("(1)")
     # 足し算・引き算
     test("(1+2)")
     test("(1-2)")
@@ -302,10 +301,17 @@ def run_test():
     test("3*(4/2)")
 
     # 四則演算
-    test("1-(4*2)")
-    test("(4/2)+3")
-    test("(4+3/2)*3")
     test("(3+3/3)*(4/2)+3")
+
+    # ネストしたとき
+    # 二重
+    test("((3+3))")
+    test("((3+3)+1)")
+    test("((3+3)/3)*(4/2)+3")
+    # 三重
+    test("(((3+3)))")
+    test("(((3+3)+4)+1)+2")
+    test("(1+((3+3)/3)*(4/2+3))+3")
 
     # エラーが出ることを確認する
     # カッコの数が合わない時
