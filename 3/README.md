@@ -25,3 +25,51 @@
 ## 工夫した点
 
 エラーを全部`Invalid syntax`にするのではなく、詳細も書くようにして、デバッグしやすいようにした。
+
+# 宿題２
+
+## 工夫した点
+
+### 小さいテストケースから網羅するようにした
+
+とにかく単純なものからテストするようにすることで、実装のミスをした際にどこでミスしたのかわかりやすくした。
+
+### エラーもテストした
+
+エラーが出るようなフォーマットをあえて用意して、エラーになったら PASS ということにした。
+`exit`だと処理自体を抜けてしまうので、`try except`を使うために`raise Exception`を使った。
+
+例：
+
+```py
+    test("*1", expect_error=True)
+    test("/2", expect_error=True)
+    test("3+1/0", expect_error=True)
+    test("3+1/", expect_error=True)
+    test("3+1*", expect_error=True)
+    test("3+1/*2", expect_error=True)
+
+```
+
+```
+Do not start with * or /
+PASS! (Invalid syntax)
+Do not start with * or /
+PASS! (Invalid syntax)
+PASS! (ZeroDivisionError)
+Do not end with * or /
+PASS! (Invalid syntax)
+Do not end with * or /
+PASS! (Invalid syntax)
+Please use numbers before and after symbols
+PASS! (Invalid syntax)
+```
+
+となる。
+
+### 気になっているところ
+
+- これでも網羅できていない
+  - もっと大きい数のときは？
+  - 小数ちゃんと.0~.9 まで大丈夫？
+- エラーになるときのテストケースが print が入ってきて少し見づらい状態。
