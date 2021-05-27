@@ -236,10 +236,7 @@ run_test()
 
 while True:
     print('> ', end="")
-    try:
-        line = input()
-        tokens = tokenize(line)
-        answer = evaluate(evaluate)
-        print("answer = %f\n" % answer)
-    except Exception as e:
-        print("ERROR!" + e)
+    line = input()
+    tokens = tokenize(line)
+    answer = evaluate(evaluate)
+    print("answer = %f\n" % answer)

@@ -38,6 +38,16 @@ def read_divided(line, index):
     return token, index + 1
 
 
+def read_bracket_open(line, index):
+    token = {'type': 'BRACKET_OPEN'}
+    return token, index + 1
+
+
+def read_bracket_close(line, index):
+    token = {'type': 'BRACKET_CLOSE'}
+    return token, index + 1
+
+
 def tokenize(line):
     tokens = []
     index = 0
@@ -52,6 +62,10 @@ def tokenize(line):
             (token, index) = read_times(line, index)
         elif line[index] == '/':
             (token, index) = read_divided(line, index)
+        elif line[index] == '(':
+            (token, index) = read_bracket_open(line, index)
+        elif line[index] == ')':
+            (token, index) = read_bracket_close(line, index)
         else:
             print('Invalid character found: ' + line[index])
             exit(1)
@@ -104,10 +118,43 @@ def evaluate_plus_and_minus(tokens):
     return answer
 
 
-def evaluate(tokens):
+def solve_brackets(tokens):
+    index = 0
+    open_brackes_indexs = []
+    result_tokens = []
+
+    while index < len(tokens):
+        # (があるか探す
+        if tokens[index]['type'] == 'BRACKET_OPEN':  # (が見つかったら
+            open_brackes_indexs.append(index)
+            result_tokens.append(tokens[index])
+        elif tokens[index]['type'] == 'BRACKET_CLOSE':  # )が見つかったら
+            if len(open_brackes_indexs) == 0:  # )が多すぎる
+                print("The number of closing and opening parentheses does not match")
+                raise Exception('Invalid syntax')
+            open_bracket_index = open_brackes_indexs.pop()
+            # (から)からまでを計算してtokenを作成
+            brancket_token = {'type': 'NUMBER', 'number': solve_without_brackets(tokens[open_bracket_index+1:index])}
+            # result_tokensの最後に出てきた(以降を削除し、bracket_tokenに差し替える
+            result_tokens = result_tokens[:(open_bracket_index - index)] + [brancket_token]
+        else:
+            result_tokens.append(tokens[index])
+        index += 1
+    if len(open_brackes_indexs) > 0:  # (が多すぎる
+        print("The number of closing and opening parentheses does not match")
+        raise Exception('Invalid syntax')
+    return result_tokens
+
+
+def solve_without_brackets(tokens):
     solved_times_and_divided = evaluate_times_and_divided(tokens)
-    actual_answer = evaluate_plus_and_minus(solved_times_and_divided)
-    return actual_answer
+    answer = evaluate_plus_and_minus(solved_times_and_divided)
+    return answer
+
+
+def evaluate(tokens):
+    without_brackets_tokens = solve_brackets(tokens)
+    return solve_without_brackets(without_brackets_tokens)
 
 
 def test(line, expect_error=False):
@@ -231,6 +278,41 @@ def run_test():
     test("3+1/", expect_error=True)
     test("3+1*", expect_error=True)
     test("3+1/*2", expect_error=True)
+
+    #
+    # カッコがあるとき
+    #
+    # 足し算・引き算
+    test("(1+2)")
+    test("(1-2)")
+    test("1+(1+2)")
+    test("(1+2)+2")
+    test("(1+2)+(2+3)")
+    test("(1+2)-(2+3)")
+    test("-(1+2)-(2+3)")
+    test("1+(1+2+3)")
+    test("-(1+2+3)")
+    # カッコの中が小数になるとき
+    test("-(1+2+3.5)+(2+3)")
+
+    # 掛け算・割り算
+    test("(4*2)")
+    test("(4/2)")
+    test("(4/2)*3")
+    test("3*(4/2)")
+
+    # 四則演算
+    test("1-(4*2)")
+    test("(4/2)+3")
+    test("(4+3/2)*3")
+    test("(3+3/3)*(4/2)+3")
+
+    # エラーが出ることを確認する
+    # カッコの数が合わない時
+    test("((1+2)+2", expect_error=True)
+    test("-(1+2+(3)", expect_error=True)
+    test("-(1+2)+3)", expect_error=True)
+
     print("==== Test finished! ====\n")
 
 
@@ -238,10 +320,7 @@ run_test()
 
 while True:
     print('> ', end="")
-    try:
-        line = input()
-        tokens = tokenize(line)
-        answer = evaluate(evaluate)
-        print("answer = %f\n" % answer)
-    except Exception as e:
-        print("ERROR!" + e)
+    line = input()
+    tokens = tokenize(line)
+    answer = evaluate(evaluate)
+    print("answer = %f\n" % answer)
