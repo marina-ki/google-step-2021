@@ -85,7 +85,7 @@ def evaluate_times_and_divided(tokens):  # *と/のみ計算
     return new_tokens
 
 
-def evaluate(tokens):
+def evaluate_plus_and_minus(tokens):
     answer = 0
     tokens.insert(0, {'type': 'PLUS'})  # Insert a dummy '+' token
     index = 1
@@ -102,11 +102,16 @@ def evaluate(tokens):
     return answer
 
 
+def evaluate(tokens):
+    solved_times_and_divided = evaluate_times_and_divided(tokens)
+    actual_answer = evaluate_plus_and_minus(solved_times_and_divided)
+    return actual_answer
+
+
 def test(line, expect_error=False):
     try:
         tokens = tokenize(line)
-        solved_times_and_divided = evaluate_times_and_divided(tokens)
-        actual_answer = evaluate(solved_times_and_divided)
+        actual_answer = evaluate(tokens)
         expected_answer = eval(line)
         if expect_error == False:
             if abs(actual_answer - expected_answer) < 1e-8:
@@ -234,8 +239,7 @@ while True:
     try:
         line = input()
         tokens = tokenize(line)
-        solved_times_and_divided = evaluate_times_and_divided(tokens)
-        answer = evaluate(solved_times_and_divided)
+        answer = evaluate(evaluate)
         print("answer = %f\n" % answer)
     except Exception as e:
         print("ERROR!" + e)
