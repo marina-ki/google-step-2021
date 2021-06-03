@@ -46,11 +46,13 @@ def search_route(pages, links, start_word, goal_word):
 
         for route in routes:
             last_visited_page_id = route[-1]
-            if last_visited_page_id == goal_page_id:
-                return route
 
             try:
                 for next_page_id in links[last_visited_page_id]:
+                    if next_page_id == goal_page_id:  # 見つかったとき
+                        route.append(next_page_id)
+                        return route
+
                     if next_page_id in route:  # page_idを既に通った場合はそのルートはNG
                         continue
 
@@ -58,12 +60,12 @@ def search_route(pages, links, start_word, goal_word):
                     new_route.append(next_page_id)
                     new_routes.append(new_route)
 
-            except KeyError:
+            except KeyError:  # links[last_visited_page_id]でエラーが出たとき
                 continue
 
-            if len(new_routes) == 0:
-                print("not found")
-                return
+        if len(new_routes) == 0:
+            print("not found")
+            return
         routes = copy.copy(new_routes)
 
 
@@ -72,13 +74,6 @@ def print_route(route, pages):
     for page_id in route:
         words.append(pages[page_id])
     print(words)
-
-
-def get_time(process):
-    begin = time.time()
-    process()
-    end = time.time()
-    return end - begin
 
 
 def main():
@@ -100,7 +95,9 @@ def main():
     links = read_links(links_file)
 
     route = search_route(pages, links, start_word, goal_word)
-    print_route(route, pages)
+
+    if route != None:
+        print_route(route, pages)
 
     end = time.time()
     print("処理時間：{}".format(end - begin))
