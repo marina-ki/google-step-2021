@@ -31,7 +31,7 @@
 //      the default malloc() / free(), std:: libraries etc. This is because you
 //      are implementing malloc itself -- if you use something that may use
 //      malloc internally, it will result in an infinite recurion.
-// 3. my_malloc(), my_free() and my_initialize() in my_malloc.c
+// 3. simple_malloc(), simple_free() and simple_initialize() in simple_malloc.c
 //    are an example of straightforward implementation.
 //    Your job is to invent a smarter malloc algorithm than the simple malloc.
 // 4. There are five challenges (Challenge 1, 2, 3, 4 and 5). Each challenge
@@ -66,65 +66,10 @@
 void *mmap_from_system(size_t size);
 void munmap_to_system(void *ptr, size_t size);
 
-typedef struct my_metadata_t
-{
-  size_t size;
-  struct my_metadata_t *next;
-} my_metadata_t;
-
-// The global information of the simple malloc.
-//   *  |free_head| points to the first free slot.
-//   *  |dummy| is a dummy free slot (only used to make the free list
-//      implementation simpler).
-typedef struct my_heap_t
-{
-  my_metadata_t *free_head;
-  my_metadata_t dummy;
-} my_heap_t;
-
-my_heap_t my_heap;
-
-// Add a free slot to the beginning of the free list.
-void my_add_to_free_list(my_metadata_t *metadata)
-{
-  assert(!metadata->next);
-  my_metadata_t *free_metadata = my_heap.free_head;
-  my_metadata_t *best_fit_free_metadata = free_metadata;
-  // search best fit
-  // while (free_metadata != NULL)
-  // {
-  //   if (free_metadata->size >= metadata->size && best_fit_free_metadata->size > free_metadata->size)
-  //   {
-  //     best_fit_free_metadata = free_metadata;
-  //   }
-  //   free_metadata = free_metadata->next;
-  // }
-
-  best_fit_free_metadata->next = my_heap.free_head;
-  my_heap.free_head = best_fit_free_metadata;
-}
-
-// Remove a free slot from the free list.
-void my_remove_from_free_list(my_metadata_t *metadata,
-                              my_metadata_t *prev)
-{
-  if (prev)
-  {
-    prev->next = metadata->next;
-  }
-  else
-  {
-    my_heap.free_head = metadata->next;
-  }
-  metadata->next = NULL;
-}
-
 // my_initialize() is called only once at the beginning of each challenge.
 void my_initialize()
 {
-  my_heap.free_head = &my_heap.dummy;
-  my_heap.dummy.size = 0;
-  my_heap.dummy.next = NULL;
+  // Implement here!
 }
 
 // my_malloc() is called every time an object is allocated. |size| is guaranteed
@@ -133,79 +78,16 @@ void my_initialize()
 // munmap_to_system.
 void *my_malloc(size_t size)
 {
-  my_metadata_t *metadata = my_heap.free_head;
-  my_metadata_t *prev = NULL;
-  // First-fit: Find the first free slot the object fits.
-  while (metadata && metadata->size < size)
-  {
-    prev = metadata;
-    metadata = metadata->next;
-  }
-
-  if (!metadata)
-  {
-    // There was no free slot available. We need to request a new memory region
-    // from the system by calling mmap_from_system().
-    //
-    //     | metadata | free slot |
-    //     ^
-    //     metadata
-    //     <---------------------->
-    //            buffer_size
-    size_t buffer_size = 4096;
-    my_metadata_t *metadata =
-        (my_metadata_t *)mmap_from_system(buffer_size);
-    metadata->size = buffer_size - sizeof(my_metadata_t);
-    metadata->next = NULL;
-    // Add the memory region to the free list.
-    my_add_to_free_list(metadata);
-    // Now, try my_malloc() again. This should succeed.
-    return my_malloc(size);
-  }
-
-  // |ptr| is the beginning of the allocated object.
-  //
-  // ... | metadata | object | ...
-  //     ^          ^
-  //     metadata   ptr
-  void *ptr = metadata + 1;
-  size_t remaining_size = metadata->size - size;
-  metadata->size = size;
-  // Remove the free slot from the free list.
-  my_remove_from_free_list(metadata, prev);
-
-  if (remaining_size > sizeof(my_metadata_t))
-  {
-    // Create a new metadata for the remaining free slot.
-    //
-    // ... | metadata | object | metadata | free slot | ...
-    //     ^          ^        ^
-    //     metadata   ptr      new_metadata
-    //                 <------><---------------------->
-    //                   size       remaining size
-    my_metadata_t *new_metadata = (my_metadata_t *)((char *)ptr + size);
-    new_metadata->size = remaining_size - sizeof(my_metadata_t);
-    new_metadata->next = NULL;
-    // Add the remaining free slot to the free list.
-    my_add_to_free_list(new_metadata);
-  }
-  return ptr;
+  // Implement here!
+  return mmap_from_system(4096);
 }
 
 // my_free() is called every time an object is freed.  You are not allowed to
 // use any library functions other than mmap_from_system / munmap_to_system.
 void my_free(void *ptr)
 {
-  // Look up the metadata. The metadata is placed just prior to the object.
-  //
-  // ... | metadata | object | ...
-  //     ^          ^
-  //     metadata   ptr
-
-  my_metadata_t *metadata = (my_metadata_t *)ptr - 1;
-
-  // Add the free slot to the free list.
-  my_add_to_free_list(metadata);
+  // Implement here!
+  munmap_to_system(ptr, 4096);
 }
 
 void my_finalize()
