@@ -84,12 +84,62 @@ typedef struct my_heap_t
 
 my_heap_t my_heap;
 
+void my_remove_from_free_list(my_metadata_t *metadata,
+                              my_metadata_t *prev);
+
 // Add a free slot to the beginning of the free list.
 void my_add_to_free_list(my_metadata_t *metadata)
 {
-  assert(!metadata->next);
-  metadata->next = my_heap.free_head;
-  my_heap.free_head = metadata;
+  my_metadata_t *tmp_metadata = my_heap.free_head;
+  my_metadata_t *prev_metadata = my_heap.free_head;
+  my_metadata_t *left_free_metadata = NULL;
+  my_metadata_t *right_free_metadata = NULL;
+  my_metadata_t *prev_right_free_metadata = NULL;
+  while (tmp_metadata)
+  {
+    if (&tmp_metadata + tmp_metadata->size - &metadata <= sizeof(my_metadata_t))
+    {
+      left_free_metadata = tmp_metadata;
+    }
+    else if (&metadata + metadata->size - &tmp_metadata <= sizeof(my_metadata_t))
+    {
+      prev_right_free_metadata = prev_metadata;
+      right_free_metadata = tmp_metadata;
+    }
+    prev_metadata = tmp_metadata;
+    tmp_metadata = tmp_metadata->next;
+  }
+  if (left_free_metadata && right_free_metadata)
+  {
+    // merge both side
+    left_free_metadata->size = left_free_metadata->size + metadata->size + right_free_metadata->size;
+
+    my_remove_from_free_list(right_free_metadata, prev_right_free_metadata);
+  }
+  else if (left_free_metadata)
+  {
+    // merge light side
+    left_free_metadata->size = left_free_metadata->size + metadata->size;
+  }
+  else if (right_free_metadata)
+  {
+    // merge right side
+    metadata->size = metadata->size + right_free_metadata->size;
+    if (prev_right_free_metadata)
+    {
+      prev_right_free_metadata->next = metadata;
+    }
+    else
+    {
+      my_heap.free_head = metadata;
+    }
+  }
+  else
+  {
+    assert(!metadata->next);
+    metadata->next = my_heap.free_head;
+    my_heap.free_head = metadata;
+  }
 }
 
 // Remove a free slot from the free list.
