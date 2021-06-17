@@ -91,17 +91,18 @@ void my_remove_from_free_list(my_metadata_t *metadata,
 void my_add_to_free_list(my_metadata_t *metadata)
 {
   my_metadata_t *tmp_metadata = my_heap.free_head;
-  my_metadata_t *prev_metadata = my_heap.free_head;
+  my_metadata_t *prev_metadata = NULL;
   my_metadata_t *left_free_metadata = NULL;
   my_metadata_t *right_free_metadata = NULL;
   my_metadata_t *prev_right_free_metadata = NULL;
+
   while (tmp_metadata)
   {
-    if (&tmp_metadata + tmp_metadata->size - &metadata <= sizeof(my_metadata_t))
+    if ((my_metadata_t *)((char *)tmp_metadata + sizeof(my_metadata_t) + tmp_metadata->size) == metadata)
     {
       left_free_metadata = tmp_metadata;
     }
-    else if (&metadata + metadata->size - &tmp_metadata <= sizeof(my_metadata_t))
+    else if (tmp_metadata == (my_metadata_t *)((char *)metadata + sizeof(my_metadata_t) + metadata->size))
     {
       prev_right_free_metadata = prev_metadata;
       right_free_metadata = tmp_metadata;
@@ -112,19 +113,18 @@ void my_add_to_free_list(my_metadata_t *metadata)
   if (left_free_metadata && right_free_metadata)
   {
     // merge both side
-    left_free_metadata->size = left_free_metadata->size + metadata->size + right_free_metadata->size;
-
+    left_free_metadata->size += metadata->size + sizeof(my_metadata_t) + right_free_metadata->size + sizeof(my_metadata_t);
     my_remove_from_free_list(right_free_metadata, prev_right_free_metadata);
   }
   else if (left_free_metadata)
   {
     // merge light side
-    left_free_metadata->size = left_free_metadata->size + metadata->size;
+    left_free_metadata->size += metadata->size + sizeof(my_metadata_t);
   }
   else if (right_free_metadata)
   {
     // merge right side
-    metadata->size = metadata->size + right_free_metadata->size;
+    metadata->size += right_free_metadata->size + sizeof(my_metadata_t);
     if (prev_right_free_metadata)
     {
       prev_right_free_metadata->next = metadata;
@@ -133,6 +133,8 @@ void my_add_to_free_list(my_metadata_t *metadata)
     {
       my_heap.free_head = metadata;
     }
+    metadata->next = right_free_metadata->next;
+    right_free_metadata->next = NULL;
   }
   else
   {
@@ -173,24 +175,14 @@ void *my_malloc(size_t size)
 {
   my_metadata_t *metadata = my_heap.free_head;
   my_metadata_t *prev = NULL;
-  // Best-fit: Find the first free slot the object fits.
-  my_metadata_t *worst_fit_metadata = NULL;
-  my_metadata_t *worst_fit_prev = NULL;
-  while (metadata)
+  // First-fit: Find the first free slot the object fits.
+  while (metadata && metadata->size < size)
   {
-    if (metadata->size >= size)
-    {
-      if (worst_fit_metadata == NULL || worst_fit_metadata->size < metadata->size)
-      {
-        worst_fit_metadata = metadata;
-        worst_fit_prev = prev;
-      }
-    }
     prev = metadata;
     metadata = metadata->next;
   }
 
-  if (!worst_fit_metadata)
+  if (!metadata)
   {
     // There was no free slot available. We need to request a new memory region
     // from the system by calling mmap_from_system().
@@ -216,11 +208,11 @@ void *my_malloc(size_t size)
   // ... | metadata | object | ...
   //     ^          ^
   //     metadata   ptr
-  void *ptr = worst_fit_metadata + 1;
-  size_t remaining_size = worst_fit_metadata->size - size;
-  worst_fit_metadata->size = size;
+  void *ptr = metadata + 1;
+  size_t remaining_size = metadata->size - size;
+  metadata->size = size;
   // Remove the free slot from the free list.
-  my_remove_from_free_list(worst_fit_metadata, worst_fit_prev);
+  my_remove_from_free_list(metadata, prev);
 
   if (remaining_size > sizeof(my_metadata_t))
   {
