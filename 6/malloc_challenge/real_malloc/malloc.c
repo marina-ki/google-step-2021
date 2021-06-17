@@ -90,26 +90,35 @@ void my_remove_from_free_list(my_metadata_t *metadata,
 // Add a free slot to the beginning of the free list.
 void my_add_to_free_list(my_metadata_t *metadata)
 {
+  //アドレス順になるように連結する！
   my_metadata_t *tmp_metadata = my_heap.free_head;
   my_metadata_t *prev_metadata = NULL;
   my_metadata_t *left_free_metadata = NULL;
   my_metadata_t *right_free_metadata = NULL;
   my_metadata_t *prev_right_free_metadata = NULL;
 
-  while (tmp_metadata)
+  while (tmp_metadata->next)
   {
-    if ((my_metadata_t *)((char *)tmp_metadata + sizeof(my_metadata_t) + tmp_metadata->size) == metadata)
+    //     | metadata | free slot | ... | metadata | intend to free | ... | metadata | free slot |
+    //     ^                            ^                                 ^
+    //     tmp_metadata                 metadata                          tmp_metadata->next
+    if ((tmp_metadata - metadata) * (tmp_metadata->next - metadata) < 0)
     {
-      left_free_metadata = tmp_metadata;
+      break;
     }
-    else if (tmp_metadata == (my_metadata_t *)((char *)metadata + sizeof(my_metadata_t) + metadata->size))
-    {
-      prev_right_free_metadata = prev_metadata;
-      right_free_metadata = tmp_metadata;
-    }
-    prev_metadata = tmp_metadata;
     tmp_metadata = tmp_metadata->next;
   }
+
+  if ((my_metadata_t *)((char *)tmp_metadata + sizeof(my_metadata_t) + tmp_metadata->size) == metadata)
+  {
+    left_free_metadata = tmp_metadata;
+  }
+  else if (tmp_metadata->next && tmp_metadata->next == (my_metadata_t *)((char *)metadata + sizeof(my_metadata_t) + metadata->size))
+  {
+    prev_right_free_metadata = tmp_metadata;
+    right_free_metadata = tmp_metadata->next;
+  }
+
   if (left_free_metadata && right_free_metadata)
   {
     // merge both side
@@ -139,8 +148,8 @@ void my_add_to_free_list(my_metadata_t *metadata)
   else
   {
     assert(!metadata->next);
-    metadata->next = my_heap.free_head;
-    my_heap.free_head = metadata;
+    metadata->next = tmp_metadata->next;
+    tmp_metadata->next = metadata;
   }
 }
 
