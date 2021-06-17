@@ -84,6 +84,7 @@ typedef struct my_heap_t
 
 my_heap_t my_heap;
 
+// Add a free slot to the beginning of the free list.
 void my_remove_from_free_list(my_metadata_t *metadata,
                               my_metadata_t *prev);
 
@@ -183,14 +184,24 @@ void *my_malloc(size_t size)
 {
   my_metadata_t *metadata = my_heap.free_head;
   my_metadata_t *prev = NULL;
-  // First-fit: Find the first free slot the object fits.
-  while (metadata && metadata->size < size)
+  // Best-fit: Find the first free slot the object fits.
+  my_metadata_t *best_fit_metadata = NULL;
+  my_metadata_t *best_fit_prev = NULL;
+  while (metadata)
   {
+    if (metadata->size >= size)
+    {
+      if (best_fit_metadata == NULL || best_fit_metadata->size > metadata->size)
+      {
+        best_fit_metadata = metadata;
+        best_fit_prev = prev;
+      }
+    }
     prev = metadata;
     metadata = metadata->next;
   }
 
-  if (!metadata)
+  if (!best_fit_metadata)
   {
     // There was no free slot available. We need to request a new memory region
     // from the system by calling mmap_from_system().
@@ -216,11 +227,11 @@ void *my_malloc(size_t size)
   // ... | metadata | object | ...
   //     ^          ^
   //     metadata   ptr
-  void *ptr = metadata + 1;
-  size_t remaining_size = metadata->size - size;
-  metadata->size = size;
+  void *ptr = best_fit_metadata + 1;
+  size_t remaining_size = best_fit_metadata->size - size;
+  best_fit_metadata->size = size;
   // Remove the free slot from the free list.
-  my_remove_from_free_list(metadata, prev);
+  my_remove_from_free_list(best_fit_metadata, best_fit_prev);
 
   if (remaining_size > sizeof(my_metadata_t))
   {
