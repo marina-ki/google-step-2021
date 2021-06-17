@@ -92,7 +92,6 @@ void my_add_to_free_list(my_metadata_t *metadata)
 {
   //アドレス順になるように連結する！
   my_metadata_t *tmp_metadata = my_heap.free_head;
-  my_metadata_t *prev_metadata = NULL;
   my_metadata_t *left_free_metadata = NULL;
   my_metadata_t *right_free_metadata = NULL;
   my_metadata_t *prev_right_free_metadata = NULL;
