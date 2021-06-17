@@ -1,21 +1,27 @@
 # best fit
 
+<a href="./malloc_challenge/real_malloc/best_fit.c">コード</a>
+
 ```
 Challenge 1: simple malloc => my malloc
-Time: 6 ms => 1223 ms
+Time: 6 ms => 1225 ms
 Utilization: 70% => 70%
 ==================================
 Challenge 2: simple malloc => my malloc
-Time: 5 ms => 396 ms
+Time: 5 ms => 457 ms
 Utilization: 40% => 40%
 ==================================
 Challenge 3: simple malloc => my malloc
-Time: 102 ms => 588 ms
+Time: 109 ms => 792 ms
 Utilization: 8% => 50%
 ==================================
 Challenge 4: simple malloc => my malloc
-Time: 17998 ms => 8366 ms
+Time: 21293 ms => 8577 ms
 Utilization: 15% => 71%
+==================================
+Challenge 5: simple malloc => my malloc
+Time: 13411 ms => 7360 ms
+Utilization: 15% => 74%
 ==================================
 ```
 
