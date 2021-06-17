@@ -27,6 +27,8 @@ Utilization: 15% => 74%
 
 # worst fit
 
+<a href="./malloc_challenge/real_malloc/worst_fit.c">コード</a>
+
 ```
 Challenge 1: simple malloc => my malloc
 Time: 8 ms => 1267 ms
@@ -45,6 +47,8 @@ Utilization: 8% => 4%
 時間も大幅に大きくなった
 
 # 隣接空スロット連結, free のリストをアドレス順に連結
+
+<a href="./malloc_challenge/real_malloc/malloc.c">コード</a>
 
 ```
 Challenge 1: simple malloc => my malloc
@@ -71,6 +75,8 @@ Utilization: 15% => 75%
 
 # 隣接空スロット連結, free のリストをアドレス順に連結 + best fit
 
+<a href="./malloc_challenge/real_malloc/best_and_free_merge.c">コード</a>
+
 ```
 Challenge 1: simple malloc => my malloc
 Time: 7 ms => 176 ms
@@ -93,3 +99,5 @@ Time: 15708 ms => 923 ms
 Utilization: 15% => 76%
 ==================================
 ```
+
+best fit しないときと比べてあまり変わらなかった
